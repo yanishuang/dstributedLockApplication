@@ -26,8 +26,8 @@ public class DstributedLockApplication {
 
     @PostConstruct
     public void init(){
-        //testRedisLock();
-        System.out.println(new Date().getTime());
+        testRedisLock();
+
     }
 
     private void testRedisLock() {

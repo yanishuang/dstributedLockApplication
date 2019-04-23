@@ -12,20 +12,22 @@ import java.util.concurrent.TimeUnit;
 public class RedisLock {
 
     private ThreadLocal<Long> threadLocal = new ThreadLocal<>();
-
-    private Long MAX_TIME  = 500L;
+    private Long MAX_TIME  = 1000000000L;
 
     @Resource
     private RedisTemplate<String,String> redisTemplate;
 
 
+    private Long getCurrentTime(){
+       return System.nanoTime();
+    }
     /**
      * 尝试获得锁
      * @param lockName
      * @return
      */
     public Boolean tryToGetLock(String lockName){
-        Long currentTime = new Date().getTime() + MAX_TIME;
+        Long currentTime = getCurrentTime() + MAX_TIME;
         // 尝试获取锁
         Boolean getLockSuccess = redisTemplate.opsForValue().setIfAbsent(lockName,currentTime.toString());
         if (!getLockSuccess){
@@ -33,11 +35,11 @@ public class RedisLock {
             while (true){
                 // 获取别人设置的时间
                 String t1 =  redisTemplate.opsForValue().get(lockName);
-                currentTime = new Date().getTime();
+                currentTime = getCurrentTime();
                 // 判断是否超时
                 if(!StringUtils.isEmpty(t1) && currentTime  >  Long.parseLong(t1)){
                     //超时
-                    currentTime  = new Date().getTime()  + MAX_TIME;
+                    currentTime  = getCurrentTime()  + MAX_TIME;
                      String t2 = redisTemplate.opsForValue().getAndSet(lockName, currentTime.toString());
                     if(t2 == null || t2.equals(t1) ){
                         // 则原来的过期或者被删除了 设置成功  或者中间没有被人修改过
@@ -48,7 +50,7 @@ public class RedisLock {
                     }
                 }else{
                     //没有超时，或者lock 时间为空，重新设置
-                    currentTime = new Date().getTime() + MAX_TIME;
+                    currentTime = getCurrentTime() + MAX_TIME;
                     if(redisTemplate.opsForValue().setIfAbsent(lockName,currentTime.toString())){
                         threadLocal.set(currentTime);
                         return true;
