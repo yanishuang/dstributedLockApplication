@@ -26,10 +26,12 @@ public class RedisLock {
      */
     public Boolean tryToGetLock(String lockName){
         Long currentTime = new Date().getTime() + MAX_TIME;
+        // 尝试获取锁
         Boolean getLockSuccess = redisTemplate.opsForValue().setIfAbsent(lockName,currentTime.toString());
         if (!getLockSuccess){
             // 锁已经被其他人获取
             while (true){
+                // 获取别人设置的时间
                 String t1 =  redisTemplate.opsForValue().get(lockName);
                 currentTime = new Date().getTime();
                 // 判断是否超时
@@ -45,12 +47,13 @@ public class RedisLock {
                         return  false;
                     }
                 }else{
-                    //没有超时
+                    //没有超时，或者lock 时间为空，重新设置
                     currentTime = new Date().getTime() + MAX_TIME;
                     if(redisTemplate.opsForValue().setIfAbsent(lockName,currentTime.toString())){
                         threadLocal.set(currentTime);
                         return true;
                     }
+                    // 设置不成功，重试
                 }
             }
         }else {
