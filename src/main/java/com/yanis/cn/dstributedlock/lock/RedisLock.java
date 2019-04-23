@@ -72,12 +72,13 @@ public class RedisLock {
      */
     public Boolean tryToReleaseLock(String lockName){
         // 判断是否已经被删除了
-        String timeString = redisTemplate.opsForValue().get(lockName);
-        if(!StringUtils.isEmpty(timeString) && threadLocal.get().equals(Long.parseLong(timeString))){
-            return  redisTemplate.delete(lockName);
-        }else {
-            return false;
-        }
+//        String timeString = redisTemplate.opsForValue().get(lockName);
+//        if(!StringUtils.isEmpty(timeString) && threadLocal.get().equals(Long.parseLong(timeString))){
+//            return  redisTemplate.delete(lockName);
+//        }else {
+//            return false;
+//        }
+        return  redisTemplate.delete(lockName);
     }
 
     private void sleep(){
